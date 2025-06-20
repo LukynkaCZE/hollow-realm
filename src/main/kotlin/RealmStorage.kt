@@ -2,6 +2,7 @@ package cz.lukynka.hollow
 
 import cz.lukynka.hollow.Query.QueryBuilder
 import io.realm.kotlin.Realm
+import io.realm.kotlin.UpdatePolicy
 import io.realm.kotlin.types.RealmObject
 import java.util.concurrent.CompletableFuture
 import kotlin.reflect.KClass
@@ -32,7 +33,7 @@ abstract class RealmStorage<T : RealmObject>(val kclass: KClass<out RealmObject>
 
     fun write(value: T) {
         realm.writeBlocking {
-            this.copyToRealm(value)
+            this.copyToRealm(value, updatePolicy = UpdatePolicy.ALL)
         }
     }
 

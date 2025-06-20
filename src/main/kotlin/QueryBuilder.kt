@@ -6,11 +6,34 @@ import io.realm.kotlin.query.RealmQuery
 import io.realm.kotlin.types.TypedRealmObject
 import kotlin.reflect.KClass
 
-class CriteriaInfo(val string: String, val index: Int, val values: List<Any>)
 
 sealed class Query {
 
+    data class CriteriaInfo(val string: String, val index: Int, val values: List<Any>)
+
+
     class QueryBuilder() {
+
+        var finalQuery: Query? = null
+
+        fun or(query: InnerQueryBuilder.() -> Unit) {
+            val builder = InnerQueryBuilder()
+            query.invoke(builder)
+            finalQuery = builder.buildAsOr()
+        }
+
+        fun and(query: InnerQueryBuilder.() -> Unit) {
+            val builder = InnerQueryBuilder()
+            query.invoke(builder)
+            finalQuery = builder.buildAsAnd()
+        }
+
+        fun build(): Query {
+            return finalQuery ?: throw IllegalStateException("You either need to use `and` or `or`")
+        }
+    }
+
+    class InnerQueryBuilder() {
         val infos = mutableListOf<Query>()
 
         fun equals(field: String, value: Any) {
@@ -49,16 +72,12 @@ sealed class Query {
             infos.add(NotContains(field, list))
         }
 
-        fun build(): And {
+        fun buildAsAnd(): And {
             return And(*infos.toTypedArray())
         }
-    }
 
-    companion object {
-        fun of(dls: QueryBuilder.() -> Unit): Query {
-            val builder = QueryBuilder()
-            dls.invoke(builder)
-            return builder.build()
+        fun buildAsOr(): Or {
+            return Or(*infos.toTypedArray())
         }
     }
 

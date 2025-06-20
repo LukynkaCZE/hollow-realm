@@ -24,10 +24,7 @@ fun main() {
 
     TestRealmStorage.write(Player("AsoDesu_", -1, true, realmListOf("test")))
 
-    TestRealmStorage.queryAsync {
-        equals("username", "LukynkaCZE")
-        lessThanOrEquals("level", 3)
-    }.thenAccept { result ->
-        println("$result")
+    TestRealmStorage.queryAsync { and { equals("username", "LukynkaCZE") } }.thenAccept { players ->
+        println(players)
     }
 }
