@@ -7,7 +7,7 @@ import io.realm.kotlin.types.RealmObject
 import java.util.concurrent.CompletableFuture
 import kotlin.reflect.KClass
 
-abstract class RealmStorage<T : RealmObject>(val kclass: KClass<out RealmObject>) {
+abstract class RealmStorage<T : RealmObject>(val kclass: KClass<T>) {
 
     private val realm: Realm get() = HollowRealm.realm
 
@@ -58,9 +58,13 @@ abstract class RealmStorage<T : RealmObject>(val kclass: KClass<out RealmObject>
         return future
     }
 
+    fun all(): List<T> {
+        return realm.copyFromRealm(realm.query(kclass, "").find())
+    }
+
     fun query(query: Query): List<T> {
         val crit = realm.criteriaQuery(kclass, query)
-        return realm.copyFromRealm(crit.find()) as List<T>
+        return realm.copyFromRealm(crit.find())
     }
 
     fun query(dls: QueryBuilder.() -> Unit): List<T> {

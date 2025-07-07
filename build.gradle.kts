@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "cz.lukynka.hollow-realm"
-version = "1.0-SNAPSHOT"
+version = "1.1"
 
 repositories {
     mavenCentral()
@@ -12,7 +12,7 @@ repositories {
 
 dependencies {
     testImplementation(kotlin("test"))
-    implementation("io.realm.kotlin:library-base:3.0.0")
+    api("io.realm.kotlin:library-base:3.0.0")
 }
 
 tasks.test {
