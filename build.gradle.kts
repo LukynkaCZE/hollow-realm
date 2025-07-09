@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "cz.lukynka.hollow-realm"
-version = "1.1"
+version = "1.2"
 
 repositories {
     mavenCentral()
