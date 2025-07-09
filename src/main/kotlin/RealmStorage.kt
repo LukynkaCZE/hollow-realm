@@ -23,12 +23,9 @@ abstract class RealmStorage<T : RealmObject>(val kclass: KClass<T>) {
     }
 
     fun deleteAsync(value: T): CompletableFuture<Unit> {
-        val future = CompletableFuture<Unit>()
-        CompletableFuture.runAsync {
-            delete(value)
-            future.complete(Unit)
+        return CompletableFuture.supplyAsync {
+            this.delete(value)
         }
-        return future
     }
 
     fun write(value: T) {
@@ -38,28 +35,25 @@ abstract class RealmStorage<T : RealmObject>(val kclass: KClass<T>) {
     }
 
     fun writeAsync(value: T): CompletableFuture<Unit> {
-        val future = CompletableFuture<Unit>()
-
-        CompletableFuture.runAsync {
+        return CompletableFuture.supplyAsync {
             this.write(value)
-            future.complete(Unit)
         }
-
-        return future
     }
 
     fun compactAsync(): CompletableFuture<Boolean> {
-        val future = CompletableFuture<Boolean>()
-
-        CompletableFuture.runAsync {
-            future.complete(this.compact())
+        return CompletableFuture.supplyAsync {
+            this.compact()
         }
-
-        return future
     }
 
     fun all(): List<T> {
-        return realm.copyFromRealm(realm.query(kclass, "").find())
+        return realm.copyFromRealm(realm.query(kclass).find())
+    }
+
+    fun allAsync(): CompletableFuture<List<T>> {
+        return CompletableFuture.supplyAsync {
+            this.all()
+        }
     }
 
     fun query(query: Query): List<T> {
@@ -76,20 +70,73 @@ abstract class RealmStorage<T : RealmObject>(val kclass: KClass<T>) {
     }
 
     fun queryAsync(query: Query): CompletableFuture<List<T>> {
-        val future = CompletableFuture<List<T>>()
-        CompletableFuture.runAsync {
-            future.complete(query(query))
-        }
-        return future
+        return CompletableFuture.supplyAsync { this.query(query) }
     }
 
     fun queryAsync(dls: QueryBuilder.() -> Unit): CompletableFuture<List<T>> {
-        val future = CompletableFuture<List<T>>()
+        return CompletableFuture.supplyAsync {
+            val builder = QueryBuilder()
+            dls.invoke(builder)
+            query(builder.build())
+        }
+    }
 
-        val builder = QueryBuilder()
-        dls.invoke(builder)
-        future.complete(query(builder.build()))
+    fun first(query: Query, predicate: (T) -> Boolean): T {
+        return query(query).first(predicate)
+    }
 
-        return future
+    fun firstAsync(query: Query, predicate: (T) -> Boolean): CompletableFuture<T> {
+        return CompletableFuture.supplyAsync { query(query).first(predicate) }.exceptionally { ex -> throw ex }
+    }
+
+    fun first(query: QueryBuilder.() -> Unit, predicate: (T) -> Boolean): T {
+        return this.query(query).first(predicate)
+    }
+
+    fun firstAsync(query: QueryBuilder.() -> Unit, predicate: (T) -> Boolean): CompletableFuture<T> {
+        return CompletableFuture.supplyAsync { query(query).first(predicate) }.exceptionally { ex -> throw ex }
+    }
+
+    fun firstOrNull(query: Query, predicate: (T) -> Boolean): T? {
+        return query(query).firstOrNull(predicate)
+    }
+
+    fun firstOrNullAsync(query: Query, predicate: (T) -> Boolean): CompletableFuture<T?> {
+        return CompletableFuture.supplyAsync { query(query).firstOrNull(predicate) }.exceptionally { ex -> throw ex }
+    }
+
+    fun firstOrNull(query: QueryBuilder.() -> Unit, predicate: (T) -> Boolean): T {
+        return this.query(query).first(predicate)
+    }
+
+    fun firstOrNullAsync(query: QueryBuilder.() -> Unit, predicate: (T) -> Boolean): CompletableFuture<T?> {
+        return CompletableFuture.supplyAsync { query(query).firstOrNull(predicate) }.exceptionally { ex -> throw ex }
+    }
+
+    fun deleteAll() {
+        realm.writeBlocking {
+            val allObjects = this.query(kclass).find()
+            delete(allObjects)
+        }
+    }
+
+    fun deleteAllAsync(): CompletableFuture<Unit> {
+        return CompletableFuture.supplyAsync(::deleteAll).exceptionally { ex -> throw ex }
+    }
+
+    fun count(): Long {
+        return realm.query(kclass).count().find()
+    }
+
+    fun countAsync(): CompletableFuture<Long> {
+        return CompletableFuture.supplyAsync(::count).exceptionally { ex -> throw ex }
+    }
+
+    fun isEmpty(): Boolean {
+        return count() == 0L
+    }
+
+    fun isEmptyAsync(): CompletableFuture<Boolean> {
+        return CompletableFuture.supplyAsync(::isEmpty).exceptionally { ex -> throw ex }
     }
 }

@@ -29,8 +29,8 @@ class RealmConfigurationDsl {
         this.name = name
     }
 
-    fun withSchema(schema: KClass<out RealmObject>) {
-        this.schemas.add(schema)
+    fun withSchema(vararg schema: KClass<out RealmObject>) {
+        this.schemas.addAll(schema)
     }
 
     inline fun <reified T : RealmObject> withSchema() {
