@@ -81,6 +81,38 @@ abstract class RealmStorage<T : RealmObject>(val kclass: KClass<T>) {
         }
     }
 
+    fun first(query: Query): T {
+        return this.first(query) { true }
+    }
+
+    fun first(query: QueryBuilder.() -> Unit): T {
+        return this.first(query) { true }
+    }
+
+    fun firstAsync(query: Query): CompletableFuture<T> {
+        return CompletableFuture.supplyAsync { this.first(query) }
+    }
+
+    fun firstAsync(query: QueryBuilder.() -> Unit): CompletableFuture<T> {
+        return CompletableFuture.supplyAsync { this.first(query) }
+    }
+
+    fun firstOrNull(query: Query): T? {
+        return this.firstOrNull(query) { true }
+    }
+
+    fun firstOrNull(query: QueryBuilder.() -> Unit): T? {
+        return this.firstOrNull(query) { true }
+    }
+
+    fun firstAsyncOrNull(query: Query): CompletableFuture<T?> {
+        return CompletableFuture.supplyAsync { this.firstOrNull(query) }
+    }
+
+    fun firstAsyncOrNull(query: QueryBuilder.() -> Unit): CompletableFuture<T?> {
+        return CompletableFuture.supplyAsync { this.firstOrNull(query) }
+    }
+
     fun first(query: Query, predicate: (T) -> Boolean): T {
         return query(query).first(predicate)
     }
@@ -105,8 +137,8 @@ abstract class RealmStorage<T : RealmObject>(val kclass: KClass<T>) {
         return CompletableFuture.supplyAsync { query(query).firstOrNull(predicate) }.exceptionally { ex -> throw ex }
     }
 
-    fun firstOrNull(query: QueryBuilder.() -> Unit, predicate: (T) -> Boolean): T {
-        return this.query(query).first(predicate)
+    fun firstOrNull(query: QueryBuilder.() -> Unit, predicate: (T) -> Boolean): T? {
+        return this.query(query).firstOrNull(predicate)
     }
 
     fun firstOrNullAsync(query: QueryBuilder.() -> Unit, predicate: (T) -> Boolean): CompletableFuture<T?> {

@@ -3,7 +3,8 @@ package cz.lukynka.hollow
 import io.realm.kotlin.Realm
 import io.realm.kotlin.RealmConfiguration
 import io.realm.kotlin.migration.RealmMigration
-import io.realm.kotlin.types.RealmObject
+import io.realm.kotlin.types.RealmUUID
+import io.realm.kotlin.types.TypedRealmObject
 import java.io.File
 import kotlin.reflect.KClass
 
@@ -15,7 +16,7 @@ fun Realm.Companion.initialize(dsl: RealmConfigurationDsl.() -> Unit): Realm {
 }
 
 class RealmConfigurationDsl {
-    private val schemas: MutableSet<KClass<out RealmObject>> = mutableSetOf()
+    private val schemas: MutableSet<KClass<out TypedRealmObject>> = mutableSetOf()
     private var deleteIfMigrationNeeded: Boolean = false
     private var compactOnLaunch: Boolean = false
     private var inMemory: Boolean = false
@@ -29,11 +30,11 @@ class RealmConfigurationDsl {
         this.name = name
     }
 
-    fun withSchema(vararg schema: KClass<out RealmObject>) {
+    fun withSchema(vararg schema: KClass<out TypedRealmObject>) {
         this.schemas.addAll(schema)
     }
 
-    inline fun <reified T : RealmObject> withSchema() {
+    inline fun <reified T : TypedRealmObject> withSchema() {
         withSchema(T::class)
     }
 
@@ -85,3 +86,5 @@ class RealmConfigurationDsl {
         return configuration.build()
     }
 }
+
+val RealmUUID.Companion.EMPTY: RealmUUID get() = this.from("00000000-0000-0000-0000-000000000000")
